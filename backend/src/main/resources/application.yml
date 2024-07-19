@@ -1,0 +1,24 @@
+server:
+  port: 8080
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:1234@localhost:27017/
+      port: 27017
+      database: traffic_watch_db
+      username: root
+      password: 1234
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: kafka-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.kafka.consumer.value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.kafka.consumer.value.default-type: com.trafficwatch.backend.dtos.TrafficCameraKafkaRecord
+        spring.kafka.consumer.value.error-handling-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+        spring.kafka.consumer.value.trusted.packages: "*"
+        spring.kafka.consumer.value.use.type.headers: true
+
