@@ -46,3 +46,10 @@ services:
       - server
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  frontend:
+    image: trafficwatchfrontend
+    depends_on:
+    - server
+    ports:
+      - "5173:5173"

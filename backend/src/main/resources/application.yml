@@ -7,7 +7,7 @@ spring:
       port: 27017
       database: traffic_watch_db
       username: root
-      password: 1234
+      password: root
   kafka:
     bootstrap-servers: kafka:9092
     consumer:

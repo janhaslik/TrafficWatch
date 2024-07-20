@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class TrafficController {
 
     private final TrafficService trafficService;
@@ -22,8 +23,8 @@ public class TrafficController {
         return ResponseEntity.ok().body(trafficService.getAllTrafficCameras());
     }
 
-    @GetMapping("/cameras/details")
-    public ResponseEntity<List<String>> getAllTrafficCameraDetails() {
+    @GetMapping("/cameras/labels")
+    public ResponseEntity<List<String>> getAllTrafficCameraLabels() {
         return ResponseEntity.ok().body(trafficService.getAllTrafficCameraLabels());
     }
 
