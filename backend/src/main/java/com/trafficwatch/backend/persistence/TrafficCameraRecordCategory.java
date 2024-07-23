@@ -4,13 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TrafficCameraRecord {
+public class TrafficCameraRecordCategory {
 
-    private String timestamp;
-    private List<TrafficCameraRecordCategory> categories;
+    private String category;
+    private int objectsDetected;
+
 }

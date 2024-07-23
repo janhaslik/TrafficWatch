@@ -10,11 +10,11 @@ producer = KafkaProducer(
 )
 TOPIC = "cameras_data_topic"
 
-def send_data(key, objects_detected):
+def send_data(key, categories):
     data = {
         "label": "Camera 1",
         "timestamp": str(datetime.now().isoformat()),
-        "objectsDetected": objects_detected
+        "categories": categories
     }
 
     headers = [('type', b'com.trafficwatch.backend.dtos.TrafficCameraKafkaRecord')]

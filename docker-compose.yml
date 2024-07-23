@@ -5,6 +5,10 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper
+    networks:
+      - trafficwatch-network
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -16,17 +20,22 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - trafficwatch-network
 
   mongodb:
     image: mongo
     ports:
-      - "27017:27017"
+      - "27017:27017" 
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    networks:
+      - trafficwatch-network
 
   server:
     image: trafficwatchspringserver
@@ -38,6 +47,8 @@ services:
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_DATA_MONGODB_URI: mongodb://root:root@mongodb:27017/traffic_watch_db?authSource=admin
+    networks:
+      - trafficwatch-network
 
   cameraproducer:
     image: trafficwatchcameracv
@@ -46,10 +57,21 @@ services:
       - server
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - trafficwatch-network
 
   frontend:
     image: trafficwatchfrontend
     depends_on:
-    - server
+      - server
     ports:
       - "5173:5173"
+    networks:
+      - trafficwatch-network
+
+networks:
+  trafficwatch-network:
+    driver: bridge
+
+volumes:
+  zookeeper-data:

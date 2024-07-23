@@ -31,6 +31,6 @@ public class CamerasDataConsumer {
     }
 
     private TrafficCameraRecord convertToEntity(TrafficCameraKafkaRecord record) {
-        return new TrafficCameraRecord(record.getTimestamp(), record.getObjectsDetected());
+        return new TrafficCameraRecord(record.getTimestamp(), record.getCategories());
     }
 }

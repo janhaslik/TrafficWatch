@@ -19,5 +19,7 @@ public class TrafficCamera {
 
     private String label;
 
+    private String location;
+
     private List<TrafficCameraRecord> records;
 }

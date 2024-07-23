@@ -1,40 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Paper, CircularProgress } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrafficCamera } from '../interfaces/camera';
-import { TrafficCameraRecordWebSocket, TrafficCameraRecord } from '../interfaces/cameraRecord';
+import { Container, Typography, Paper, CircularProgress, Button, ButtonGroup, Grid } from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { TrafficCameraRecordWebSocket } from '../interfaces/cameraRecord';  // Update this import if necessary
+import { fetchCameraRecords, initializeWebSocketClient } from '../services/cameraWebsocket';
 
-// Define an interface to unify records with or without labels
-interface UnifiedTrafficCameraRecord {
-    label: string;
-    timestamp: string;
-    objectsDetected: number;
-}
-
-const WebSocketTest: React.FC = () => {
-    const [records, setRecords] = useState<UnifiedTrafficCameraRecord[]>([]);
+export default function WebSocketTest() {
+    const [records, setRecords] = useState<TrafficCameraRecordWebSocket[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [filter, setFilter] = useState<'day' | 'hour' | 'minute'>('hour');
 
     useEffect(() => {
-        // Fetch all traffic cameras and their records
         const fetchInitialData = async () => {
             try {
-                const responseCameras = await fetch('http://localhost:8080/api/v1/cameras');
-                if (!responseCameras.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const cameras: TrafficCamera[] = await responseCameras.json();
-
-                // Flatten all records into a single list
-                const allRecords: UnifiedTrafficCameraRecord[] = cameras.flatMap(camera =>
+                const cameras = await fetchCameraRecords();
+                const allRecords: TrafficCameraRecordWebSocket[] = cameras.flatMap(camera =>
                     camera.records.map(record => ({
-                        label: camera.label,  // Use camera label for identification
+                        label: camera.label,
                         timestamp: record.timestamp,
-                        objectsDetected: record.objectsDetected
+                        categories: record.categories || []
                     }))
                 );
-
                 setRecords(allRecords);
             } catch (e) {
                 console.error('Error fetching data:', e);
@@ -48,71 +34,47 @@ const WebSocketTest: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        // WebSocket connection
-        const connectWebSocket = () => {
-            const socket = new WebSocket('ws://localhost:8080/trafficcamerarecords');
+        const ws = initializeWebSocketClient(updatedRecord => {
+            setRecords(prevRecords => {
+                const existingRecordIndex = prevRecords.findIndex(record =>
+                    record.label === updatedRecord.label && record.timestamp === updatedRecord.timestamp
+                );
 
-            socket.onopen = () => {
-                console.log('WebSocket is open now.');
-            };
-
-            socket.onmessage = (event) => {
-                try {
-                    const updatedRecord: TrafficCameraRecordWebSocket = JSON.parse(event.data);
-                    setRecords(prevRecords => {
-                        // Replace or add the WebSocket record in the state
-                        const existingRecordIndex = prevRecords.findIndex(record => 
-                            record.label === updatedRecord.label && record.timestamp === updatedRecord.timestamp
-                        );
-
-                        if (existingRecordIndex >= 0) {
-                            // Replace the existing record with the updated one
-                            const updatedRecords = [...prevRecords];
-                            updatedRecords[existingRecordIndex] = updatedRecord;
-                            return updatedRecords;
-                        } else {
-                            // Add the new record
-                            return [updatedRecord, ...prevRecords];
-                        }
-                    });
-                } catch (e) {
-                    console.error('Error parsing WebSocket message:', e);
-                    setError('Error processing data from WebSocket.');
+                if (existingRecordIndex >= 0) {
+                    const updatedRecords = [...prevRecords];
+                    updatedRecords[existingRecordIndex] = updatedRecord;
+                    return updatedRecords;
+                } else {
+                    return [updatedRecord, ...prevRecords];
                 }
-            };
-
-            socket.onclose = () => {
-                console.log('WebSocket is closed now.');
-                setTimeout(connectWebSocket, 5000);
-            };
-
-            socket.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                setError('WebSocket error. Please check your connection.');
-            };
-
-            return socket;
-        };
-
-        const socket = connectWebSocket();
+            });
+        });
 
         return () => {
-            socket.close();
+            ws.close();
         };
     }, []);
 
-    const aggregateData = (records: UnifiedTrafficCameraRecord[]) => {
+    const aggregateData = (records: TrafficCameraRecordWebSocket[], filter: 'day' | 'minute' | 'hour') => {
         const aggregated: Record<string, number> = {};
 
         records.forEach(record => {
-            // Extract the date part of the timestamp
             const date = new Date(record.timestamp);
-            const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            let dateString: string;
+
+            if (filter === 'day') {
+                dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            } else if (filter === 'minute') {
+                dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0]; // YYYY-MM-DD HH:MM:SS
+            } else {
+                dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0].split(':')[0]; // YYYY-MM-DD HH
+            }
 
             if (!aggregated[dateString]) {
                 aggregated[dateString] = 0;
             }
-            aggregated[dateString] += record.objectsDetected;
+
+            aggregated[dateString] += record.categories.reduce((acc, category) => acc + category.objectsDetected, 0);
         });
 
         return Object.entries(aggregated).map(([date, totalObjectsDetected]) => ({
@@ -121,11 +83,61 @@ const WebSocketTest: React.FC = () => {
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     };
 
-    const aggregatedRecords = aggregateData(records);
+    const aggregateCategoryData = (records: TrafficCameraRecordWebSocket[], filter: 'day' | 'minute' | 'hour') => {
+        const aggregatedByCategory: Record<string, Record<string, number>> = {};
+
+        records.forEach(record => {
+            const date = new Date(record.timestamp);
+            let dateString: string;
+
+            if (filter === 'day') {
+                dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            } else if (filter === 'minute') {
+                dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0]; // YYYY-MM-DD HH:MM:SS
+            } else {
+                dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0].split(':')[0]; // YYYY-MM-DD HH
+            }
+
+            if (!aggregatedByCategory[dateString]) {
+                aggregatedByCategory[dateString] = { Car: 0, Bus: 0, Motorbike: 0 };
+            }
+
+            record.categories.forEach(category => {
+                aggregatedByCategory[dateString][category.category] += category.objectsDetected;
+            });
+        });
+
+        return Object.entries(aggregatedByCategory).map(([date, categories]) => ({
+            date,
+            ...categories
+        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    };
+
+    const aggregateCategoryDistribution = (records: TrafficCameraRecordWebSocket[]) => {
+        const categoryCounts: Record<string, number> = { 'Car': 0, 'Bus': 0, 'Motorbike': 0 };
+        let totalObjectsDetected = 0;
+
+        records.forEach(record => {
+            record.categories.forEach(category => {
+                categoryCounts[category.category] += category.objectsDetected;
+                totalObjectsDetected += category.objectsDetected
+            });
+        });
+
+
+        return Object.entries(categoryCounts).map(([category, count]) => ({
+            category,
+            value: (count / totalObjectsDetected) * 100
+        }));
+    };
+
+    const aggregatedRecords = aggregateData(records, filter);
+    const aggregatedByCategory = aggregateCategoryData(records, filter);
+    const categoryDistribution = aggregateCategoryDistribution(records);
 
     if (loading) {
         return (
-            <Container component="main" maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <Container component="main" maxWidth={false} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: 2 }}>
                 <CircularProgress />
             </Container>
         );
@@ -133,7 +145,7 @@ const WebSocketTest: React.FC = () => {
 
     if (error) {
         return (
-            <Container component="main" maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <Container component="main" maxWidth={false} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: 2 }}>
                 <Paper elevation={3} sx={{ padding: 3, textAlign: 'center' }}>
                     <Typography variant="h5" color="error">
                         {error}
@@ -144,24 +156,96 @@ const WebSocketTest: React.FC = () => {
     }
 
     return (
-        <Container component="main" maxWidth="md">
-            <Paper elevation={3} sx={{ padding: 3, marginTop: 4 }}>
-                <Typography variant="h4" gutterBottom>
+        <Container component="main" maxWidth={false} sx={{ padding: 2 }}>
+            <Paper elevation={3} sx={{ padding: 3 }}>
+                <Typography variant="h4" gutterBottom textAlign={'center'}>
                     Aggregated Traffic Camera Records
                 </Typography>
-                <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={aggregatedRecords}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="totalObjectsDetected" stroke="#8884d8" />
-                    </LineChart>
-                </ResponsiveContainer>
+                <ButtonGroup variant="contained" aria-label="filter buttons" sx={{ marginBottom: 2 }}>
+                    <Button onClick={() => setFilter('day')}>By Day</Button>
+                    <Button onClick={() => setFilter('hour')}>By Hour</Button>
+                    <Button onClick={() => setFilter('minute')}>By Minute</Button>
+                </ButtonGroup>
+
+                <Grid container spacing={4}>
+                    <Grid item xs={12} sm={6}>
+                        <Paper elevation={3} sx={{ padding: 3 }}>
+                            <Typography variant="h6" gutterBottom textAlign={'center'}>
+                                Total Objects Detected
+                            </Typography>
+                            <ResponsiveContainer width="100%" height={400}>
+                                <LineChart data={aggregatedRecords}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="date" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="totalObjectsDetected" stroke="#8884d8" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                        <Paper elevation={3} sx={{ padding: 3 }}>
+                            <Typography variant="h6" gutterBottom textAlign={'center'}>
+                                Objects Detected by Category
+                            </Typography>
+                            <ResponsiveContainer width="100%" height={400}>
+                                <LineChart data={aggregatedByCategory}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="date" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="Car" stroke="#8884d8" />
+                                    <Line type="monotone" dataKey="Bus" stroke="#82ca9d" />
+                                    <Line type="monotone" dataKey="Motorbike" stroke="#ffc658" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                        <Paper elevation={3} sx={{ padding: 3}}>
+                            <Typography variant="h6" gutterBottom textAlign={'center'}>
+                                Cameras List
+                            </Typography>
+                            <ResponsiveContainer width="100%" height={400}>
+                                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+                                    {["Camera 1", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a"].map((m: string) => (
+                                        <span key={m} style={{ padding: '8px 0' }}>{m}</span>
+                                    ))}
+                                </div>
+                            </ResponsiveContainer>
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                        <Paper elevation={3} sx={{ padding: 3 }}>
+                            <Typography variant="h6" gutterBottom textAlign={'center'}>
+                                Category Distribution
+                            </Typography>
+                            <ResponsiveContainer width="100%" height={400}>
+                                <PieChart>
+                                    <Pie data={categoryDistribution}
+                                        dataKey="value"
+                                        nameKey="category"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={150}
+                                        label={({ name, percent }) => `${name}: ${Math.round(percent * 100)}%`}>
+                                        {categoryDistribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={['#8884d8', '#82ca9d', '#ffc658'][index]} />
+                                        ))}
+                                    </Pie>
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </Paper>
+                    </Grid>
+                </Grid>
             </Paper>
         </Container>
     );
-};
-
-export default WebSocketTest;
+}

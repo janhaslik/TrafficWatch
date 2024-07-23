@@ -1,10 +1,15 @@
 export interface TrafficCameraRecordWebSocket {
     label: string; 
     timestamp: string;
-    objectsDetected: number;
+    categories: TrafficCameraRecordCategory[]
 }
 
 export interface TrafficCameraRecord {
     timestamp: string;
-    objectsDetected: number;
+    categories: TrafficCameraRecordCategory[]
+}
+
+interface TrafficCameraRecordCategory{
+    category: 'Car' | 'Bus' | 'Motorbike'
+    objectsDetected: number
 }

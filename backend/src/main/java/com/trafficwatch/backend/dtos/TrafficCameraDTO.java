@@ -9,10 +9,13 @@ import java.util.List;
 public class TrafficCameraDTO {
     private String label;
 
+    private String location;
+
     private List<TrafficCameraRecord> records;
 
-    public TrafficCameraDTO(String label, List<TrafficCameraRecord> records) {
+    public TrafficCameraDTO(String label, String location, List<TrafficCameraRecord> records) {
         this.label = label;
+        this.location = location;
         this.records = records;
     }
 }

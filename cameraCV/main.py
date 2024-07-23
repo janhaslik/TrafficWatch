@@ -7,7 +7,9 @@ producer = camera_data_producer
 
 CAMERA = "Camera 1"
 
+categories = ["Car", "Bus", "Motorbike"]
+
 while True:
     time.sleep(random.randint(1, 5))
-    num = random.randint(3, 15)
-    producer.send_data(CAMERA, num)
+    producer.send_data(CAMERA,
+                       [{'category': 'Car', 'objectsDetected': random.randint(3, 15)}, {'category': 'Bus', "objectsDetected": random.randint(3, 15)}, {'category': 'Motorbike', "objectsDetected": random.randint(3, 15)}])
