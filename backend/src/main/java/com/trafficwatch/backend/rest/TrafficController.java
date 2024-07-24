@@ -18,8 +18,8 @@ public class TrafficController {
     private final TrafficService trafficService;
 
     @GetMapping("/cameras")
-    public ResponseEntity<List<TrafficCameraDTO>> getAllTrafficCameras() {
-        return ResponseEntity.ok().body(trafficService.getAllTrafficCameras());
+    public ResponseEntity<List<TrafficCameraDTO>> getAllTrafficCameras(@RequestParam("active") Boolean active) {
+        return ResponseEntity.ok().body(trafficService.getAllTrafficCameras(active));
     }
 
     @GetMapping("/cameras/labels")

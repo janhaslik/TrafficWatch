@@ -38,10 +38,20 @@ public class TrafficService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public List<TrafficCameraDTO> getAllTrafficCameras() {
-        return trafficCameraRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<TrafficCameraDTO> getAllTrafficCameras(boolean active) {
+        List<TrafficCameraDTO> list;
+
+        if (active) {
+            list = trafficCameraRepository.findAll().stream()
+                    .filter(f -> !f.getRecords().isEmpty())
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        }else{
+            list = trafficCameraRepository.findAll().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        }
+        return list;
     }
 
     public List<TrafficCameraDTO> getCamerasWithRecentRecords() {

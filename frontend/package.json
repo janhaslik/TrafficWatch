@@ -19,10 +19,9 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.25.1",
-    "react-stomp": "^5.1.0",
-    "react-stomp-hooks": "^2.1.0",
     "recharts": "^2.12.7",
-    "sockjs-client": "^1.6.1"
+    "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
@@ -35,6 +34,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
+    "react-stomp": "^5.1.0",
     "typescript": "^5.2.2",
     "vite": "^5.3.4"
   }

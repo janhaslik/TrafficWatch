@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Client, Message } from '@stomp/stompjs';
 import { Container, Typography, Paper, CircularProgress, Button, ButtonGroup, Grid } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrafficCameraRecordWebSocket } from '../interfaces/cameraRecord';
-import { fetchCameraRecords } from '../services/cameraWebsocket';
+import { TrafficCameraRecordWebSocket } from '../../interfaces/cameraRecord';
+import { fetchCameraRecords } from '../../services/cameraWebsocket';
+import SingleLineChart from '../../components/dashboard/SingleLineChart';
+import DistributionPieChart from '../../components/dashboard/PieChart';
+import MultiLineChart from '../../components/dashboard/MultiLineChart';
 
 const SOCKET_URL = 'ws://localhost:8080/ws';
 const TOPIC = '/topic/trafficcamerarecords';
 
-export default function WebSocketTest() {
+export default function Dashboard() {
     const [records, setRecords] = useState<TrafficCameraRecordWebSocket[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filter, setFilter] = useState<'day' | 'hour' | 'minute'>('hour');
+    const [filter, setFilter] = useState<'day' | 'hour' | 'minute' | 'second'>('minute');
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -80,7 +82,7 @@ export default function WebSocketTest() {
         };
     }, []);
 
-    const aggregateData = (records: TrafficCameraRecordWebSocket[], filter: 'day' | 'minute' | 'hour') => {
+    const aggregateData = (records: TrafficCameraRecordWebSocket[], filter: 'day' | 'second' | 'minute' | 'hour') => {
         const aggregated: Record<string, number> = {};
 
         records.forEach(record => {
@@ -90,6 +92,8 @@ export default function WebSocketTest() {
             if (filter === 'day') {
                 dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
             } else if (filter === 'minute') {
+                dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0].split(':')[0] + ":" + date.toTimeString().split(' ')[0].split(':')[1]; // YYYY-MM-DD HH:MM
+            } else if (filter === 'second'){
                 dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0]; // YYYY-MM-DD HH:MM:SS
             } else {
                 dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0].split(':')[0]; // YYYY-MM-DD HH
@@ -108,7 +112,7 @@ export default function WebSocketTest() {
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     };
 
-    const aggregateCategoryData = (records: TrafficCameraRecordWebSocket[], filter: 'day' | 'minute' | 'hour') => {
+    const aggregateCategoryData = (records: TrafficCameraRecordWebSocket[], filter: 'day' | 'second' | 'minute' | 'hour') => {
         const aggregatedByCategory: Record<string, Record<string, number>> = {};
 
         records.forEach(record => {
@@ -118,6 +122,8 @@ export default function WebSocketTest() {
             if (filter === 'day') {
                 dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
             } else if (filter === 'minute') {
+                dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0].split(':')[0] + ":" + date.toTimeString().split(' ')[0].split(':')[1]; // YYYY-MM-DD HH:MM
+            } else if (filter === 'second'){
                 dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0]; // YYYY-MM-DD HH:MM:SS
             } else {
                 dateString = date.toISOString().split('T')[0] + ' ' + date.toTimeString().split(' ')[0].split(':')[0]; // YYYY-MM-DD HH
@@ -189,70 +195,18 @@ export default function WebSocketTest() {
                     <Button onClick={() => setFilter('day')}>By Day</Button>
                     <Button onClick={() => setFilter('hour')}>By Hour</Button>
                     <Button onClick={() => setFilter('minute')}>By Minute</Button>
+                    <Button onClick={() => setFilter('second')}>By Second</Button>
                 </ButtonGroup>
 
                 <Grid container spacing={4}>
                     <Grid item xs={12} sm={6}>
-                        <Paper elevation={3} sx={{ padding: 3 }}>
-                            <Typography variant="h6" gutterBottom textAlign={'center'}>
-                                Total Objects Detected
-                            </Typography>
-                            <ResponsiveContainer width="100%" height={400}>
-                                <LineChart data={aggregatedRecords}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="totalObjectsDetected" stroke="#8884d8" />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </Paper>
+                        <SingleLineChart records={aggregatedRecords}/>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                        <Paper elevation={3} sx={{ padding: 3 }}>
-                            <Typography variant="h6" gutterBottom textAlign={'center'}>
-                                Objects Detected by Category
-                            </Typography>
-                            <ResponsiveContainer width="100%" height={400}>
-                                <LineChart data={aggregatedByCategory}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    {['Car', 'Bus', 'Motorbike'].map((category, index) => (
-                                        <Line key={index} type="monotone" dataKey={category} stroke={['#ffbb28', '#00c49f', '#ff8042'][index]} />
-                                    ))}
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </Paper>
+                        <MultiLineChart records={aggregatedByCategory}/>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                        <Paper elevation={3} sx={{ padding: 3 }}>
-                            <Typography variant="h6" gutterBottom textAlign={'center'}>
-                                Category Distribution
-                            </Typography>
-                            <ResponsiveContainer width="100%" height={400}>
-                                <PieChart>
-                                    <Pie
-                                        data={categoryDistribution}
-                                        dataKey="value"
-                                        nameKey="category"
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={150}
-                                        fill="#8884d8"
-                                        label
-                                    >
-                                        {categoryDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={['#ffbb28', '#00c49f', '#ff8042'][index]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </Paper>
+                        <DistributionPieChart records={categoryDistribution}/>
                     </Grid>
                 </Grid>
             </Paper>
