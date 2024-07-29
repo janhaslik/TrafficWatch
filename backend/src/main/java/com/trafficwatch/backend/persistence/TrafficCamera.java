@@ -21,5 +21,9 @@ public class TrafficCamera {
 
     private String location;
 
+    private String status;
+
+    private String resolution;
+
     private List<TrafficCameraRecord> records;
 }

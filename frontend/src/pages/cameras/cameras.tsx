@@ -1,26 +1,27 @@
 // src/pages/CamerasPage.tsx
 import React, { useState, useEffect } from 'react';
-import { fetchCameras, addCamera, CameraItemInterface } from '../../services/camerasService';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Button, Typography } from '@mui/material';
+import { addCamera, fetchCameraDetails } from '../../services/camerasService';
+import { TextField, Button, Typography } from '@mui/material';
 import "../../styles/cameraspage.css";
+import { TrafficCameraDetails, TrafficCameraDetailsId } from '../../interfaces/camera';
+import CameraList from '../../components/dashboard/CameraList';
 
 export default function CamerasPage() {
-    const [cameras, setCameras] = useState<CameraItemInterface[]>([]);
-    const [filteredCameras, setFilteredCameras] = useState<CameraItemInterface[]>([]);
+    const [cameras, setCameras] = useState<TrafficCameraDetailsId[]>([]);
+    const [filteredCameras, setFilteredCameras] = useState<TrafficCameraDetailsId[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [newCamera, setNewCamera] = useState<{ label: string; location: string }>({ label: '', location: '' });
+    const [newCamera, setNewCamera] = useState<TrafficCameraDetails>({label: '', location: '', status: '', resolution: '' });
 
     useEffect(() => {
         const fetchCamerasData = async () => {
             try {
-                const cameras = await fetchCameras();
+                const cameras = await fetchCameraDetails();
                 setCameras(cameras);
                 setFilteredCameras(cameras);
             } catch (e) {
-                //setError("Error fetching cameras")
-                setCameras([{ label: "Camera 1", location: "Zurich" }, { label: "Camera 2", location: "Zurich" }]);
+                setCameras([]);
             } finally {
                 setLoading(false);
             }
@@ -52,9 +53,9 @@ export default function CamerasPage() {
 
         try {
             const addedCamera = await addCamera(newCamera);
-            setNewCamera({ label: '', location: '' });
+            setNewCamera({ label: '', location: '', status: '', resolution: '' });
             setCameras(prevCameras => [...prevCameras, addedCamera]);
-            setSearchQuery(''); // Reset search query
+            setSearchQuery('');
         } catch (e) {
             setError('Error adding camera.');
         }
@@ -83,32 +84,9 @@ export default function CamerasPage() {
                 value={searchQuery}
                 onChange={handleSearchChange}
             />
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Label</TableCell>
-                            <TableCell>Location</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {filteredCameras.length > 0 ? (
-                            filteredCameras.map((camera, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{camera.label}</TableCell>
-                                    <TableCell>{camera.location}</TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={2}>No cameras available.</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            <CameraList cameras={filteredCameras}/>
             <div className="add-camera-form">
-                <Typography variant="h6" gutterBottom>Add New Camera</Typography>
+                <Typography variant="h6" mt={2} gutterBottom>Add New Camera</Typography>
                 <form onSubmit={handleAddCamera}>
                     <TextField
                         label="Camera Label"
@@ -127,6 +105,26 @@ export default function CamerasPage() {
                         fullWidth
                         margin="normal"
                         value={newCamera.location}
+                        onChange={handleInputChange}
+                        required
+                    />
+                    <TextField
+                        label="Camera Status"
+                        name="status"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={newCamera.status}
+                        onChange={handleInputChange}
+                        required
+                    />
+                    <TextField
+                        label="Camera Resolution"
+                        name="resolution"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={newCamera.resolution}
                         onChange={handleInputChange}
                         required
                     />

@@ -6,4 +6,6 @@ import lombok.Data;
 public class NewTrafficCameraDTO {
     private String label;
     private String location;
+    private String status;
+    private String resolution;
 }

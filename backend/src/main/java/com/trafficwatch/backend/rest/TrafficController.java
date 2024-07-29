@@ -2,6 +2,7 @@ package com.trafficwatch.backend.rest;
 
 import com.trafficwatch.backend.dtos.NewTrafficCameraDTO;
 import com.trafficwatch.backend.dtos.TrafficCameraDTO;
+import com.trafficwatch.backend.dtos.TrafficCameraDetailsDTO;
 import com.trafficwatch.backend.persistence.TrafficCamera;
 import com.trafficwatch.backend.service.TrafficService;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,9 @@ public class TrafficController {
         return ResponseEntity.ok().body(trafficService.getAllTrafficCameras(active));
     }
 
-    @GetMapping("/cameras/labels")
-    public ResponseEntity<List<String>> getAllTrafficCameraLabels() {
-        return ResponseEntity.ok().body(trafficService.getAllTrafficCameraLabels());
+    @GetMapping("/cameras/details")
+    public ResponseEntity<List<TrafficCameraDetailsDTO>> getAllTrafficCameraLabels() {
+        return ResponseEntity.ok().body(trafficService.getAllTrafficCameraDetails());
     }
 
     @GetMapping("/cameras/{label}")

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class TrafficCameraDTO {
+public class TrafficCameraDetailsDTO {
     private String id;
 
     private String label;
@@ -17,13 +17,10 @@ public class TrafficCameraDTO {
 
     private String resolution;
 
-    private List<TrafficCameraRecord> records;
-
-    public TrafficCameraDTO(String id, String label, String location, String status, String resolution, List<TrafficCameraRecord> records) {
+    public TrafficCameraDetailsDTO(String id, String label, String location, String status, String resolution) {
         this.id = id;
         this.label = label;
         this.location = location;
-        this.records = records;
         this.status = status;
         this.resolution = resolution;
     }

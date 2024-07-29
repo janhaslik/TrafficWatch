@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Client, Message } from '@stomp/stompjs';
 import { Container, Typography, Paper, CircularProgress, Button, ButtonGroup, Grid } from '@mui/material';
-import { TrafficCameraRecordWebSocket } from '../../interfaces/cameraRecord';
-import { fetchCameraRecords } from '../../services/cameraWebsocket';
+import { TrafficCameraRecord, TrafficCameraRecordWebSocket } from '../../interfaces/cameraRecord';
+import { fetchCameras } from '../../services/camerasService';
 import SingleLineChart from '../../components/dashboard/SingleLineChart';
 import DistributionPieChart from '../../components/dashboard/PieChart';
 import MultiLineChart from '../../components/dashboard/MultiLineChart';
+import { TrafficCamera, TrafficCameraDetails, TrafficCameraDetailsId } from '../../interfaces/camera';
+import CameraList from '../../components/dashboard/CameraList';
 
 const SOCKET_URL = 'ws://localhost:8080/ws';
 const TOPIC = '/topic/trafficcamerarecords';
 
 export default function Dashboard() {
     const [records, setRecords] = useState<TrafficCameraRecordWebSocket[]>([]);
+    const [cameras, setCameras] = useState<TrafficCameraDetailsId[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'day' | 'hour' | 'minute' | 'second'>('minute');
@@ -19,14 +22,18 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const cameras = await fetchCameraRecords();
-                const allRecords: TrafficCameraRecordWebSocket[] = cameras.flatMap(camera =>
-                    camera.records.map(record => ({
-                        label: camera.label,
-                        timestamp: record.timestamp,
-                        categories: record.categories || []
-                    }))
-                );
+                const cameraRecords = await fetchCameras();
+                const allRecords: TrafficCameraRecordWebSocket[] = [];
+                const allCameraDetails: TrafficCameraDetailsId[] = []
+
+                cameraRecords.forEach((camera: TrafficCamera) => {
+                    allCameraDetails.push({id: camera.id, label: camera.label, location: camera.location, status: camera.status, resolution: camera.resolution})
+                    camera.records.forEach((record: TrafficCameraRecord) => {
+                        allRecords.push({label: camera.label, timestamp: record.timestamp, categories: record.categories})
+                    })
+                })
+                
+                setCameras(allCameraDetails)
                 setRecords(allRecords);
             } catch (e) {
                 console.error('Error fetching data:', e);
@@ -204,6 +211,9 @@ export default function Dashboard() {
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <MultiLineChart records={aggregatedByCategory}/>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <CameraList cameras={cameras}/>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <DistributionPieChart records={categoryDistribution}/>

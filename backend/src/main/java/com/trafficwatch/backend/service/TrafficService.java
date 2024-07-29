@@ -3,6 +3,7 @@ package com.trafficwatch.backend.service;
 import com.mongodb.client.result.UpdateResult;
 import com.trafficwatch.backend.dtos.NewTrafficCameraDTO;
 import com.trafficwatch.backend.dtos.TrafficCameraDTO;
+import com.trafficwatch.backend.dtos.TrafficCameraDetailsDTO;
 import com.trafficwatch.backend.persistence.TrafficCamera;
 import com.trafficwatch.backend.persistence.TrafficCameraRepository;
 import com.trafficwatch.backend.persistence.TrafficCameraRecord;
@@ -39,19 +40,17 @@ public class TrafficService {
     private MongoTemplate mongoTemplate;
 
     public List<TrafficCameraDTO> getAllTrafficCameras(boolean active) {
-        List<TrafficCameraDTO> list;
+        List<TrafficCamera> trafficCameras;
 
         if (active) {
-            list = trafficCameraRepository.findAll().stream()
-                    .filter(f -> !f.getRecords().isEmpty())
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
-        }else{
-            list = trafficCameraRepository.findAll().stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
+            trafficCameras = trafficCameraRepository.findActiveCameras();
+        } else {
+            trafficCameras = trafficCameraRepository.findAll();
         }
-        return list;
+
+        return trafficCameras.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     public List<TrafficCameraDTO> getCamerasWithRecentRecords() {
@@ -68,14 +67,8 @@ public class TrafficService {
         return convertToDTO(camera);
     }
 
-    public List<String> getAllTrafficCameraLabels(){
-        return trafficCameraRepository.findAll().stream()
-                .map(TrafficCamera::getLabel)
-                .collect(Collectors.toList());
-    }
-
     public TrafficCamera insertNewTrafficCamera(NewTrafficCameraDTO trafficCamera){
-        TrafficCamera newTrafficCamera = new TrafficCamera(null, trafficCamera.getLabel(), trafficCamera.getLocation(), Collections.emptyList());
+        TrafficCamera newTrafficCamera = new TrafficCamera(null, trafficCamera.getLabel(), trafficCamera.getLocation(), trafficCamera.getStatus(), trafficCamera.getResolution(), Collections.emptyList());
         return trafficCameraRepository.save(newTrafficCamera);
     }
 
@@ -101,6 +94,10 @@ public class TrafficService {
     }
 
     private TrafficCameraDTO convertToDTO(TrafficCamera camera) {
-        return new TrafficCameraDTO(camera.getLabel(), camera.getLocation(), camera.getRecords());
+        return new TrafficCameraDTO(camera.getId(), camera.getLabel(), camera.getLocation(), camera.getStatus(), camera.getResolution(),camera.getRecords());
+    }
+
+    public List<TrafficCameraDetailsDTO> getAllTrafficCameraDetails() {
+        return trafficCameraRepository.findCameraDetails().stream().toList();
     }
 }
