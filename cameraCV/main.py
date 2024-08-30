@@ -12,4 +12,8 @@ categories = ["Car", "Bus", "Motorbike"]
 while True:
     time.sleep(random.randint(1, 5))
     producer.send_data(CAMERA,
-                       [{'category': 'Car', 'objectsDetected': random.randint(3, 15)}, {'category': 'Bus', "objectsDetected": random.randint(3, 15)}, {'category': 'Motorbike', "objectsDetected": random.randint(3, 15)}])
+                       [
+                        {'category': 'Car', 'objectsDetected': random.randint(3, 15)},
+                        {'category': 'Bus', "objectsDetected": random.randint(3, 15)},
+                        {'category': 'Motorbike', "objectsDetected": random.randint(3, 15)}
+                       ])

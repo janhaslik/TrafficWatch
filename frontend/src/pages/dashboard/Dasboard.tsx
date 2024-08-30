@@ -6,7 +6,7 @@ import { fetchCameras } from '../../services/camerasService';
 import SingleLineChart from '../../components/dashboard/SingleLineChart';
 import DistributionPieChart from '../../components/dashboard/PieChart';
 import MultiLineChart from '../../components/dashboard/MultiLineChart';
-import { TrafficCamera, TrafficCameraDetails, TrafficCameraDetailsId } from '../../interfaces/camera';
+import { TrafficCamera, TrafficCameraDetailsId } from '../../interfaces/camera';
 import CameraList from '../../components/dashboard/CameraList';
 
 const SOCKET_URL = 'ws://localhost:8080/ws';

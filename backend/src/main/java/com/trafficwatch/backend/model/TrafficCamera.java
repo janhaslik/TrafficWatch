@@ -1,4 +1,4 @@
-package com.trafficwatch.backend.persistence;
+package com.trafficwatch.backend.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

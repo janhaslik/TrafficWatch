@@ -1,5 +1,6 @@
-package com.trafficwatch.backend.persistence;
+package com.trafficwatch.backend.model;
 
+import com.trafficwatch.backend.persistence.TrafficCameraRecordCategory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

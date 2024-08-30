@@ -1,9 +1,7 @@
 package com.trafficwatch.backend.consumer;
 
-import com.trafficwatch.backend.dtos.TrafficCameraDTO;
 import com.trafficwatch.backend.dtos.TrafficCameraKafkaRecord;
-import com.trafficwatch.backend.persistence.TrafficCamera;
-import com.trafficwatch.backend.persistence.TrafficCameraRecord;
+import com.trafficwatch.backend.model.TrafficCameraRecord;
 import com.trafficwatch.backend.service.TrafficService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

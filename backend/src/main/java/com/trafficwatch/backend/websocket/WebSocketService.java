@@ -1,7 +1,7 @@
 package com.trafficwatch.backend.websocket;
 
 import com.trafficwatch.backend.dtos.TrafficCameraKafkaRecord;
-import com.trafficwatch.backend.persistence.TrafficCameraRecord;
+import com.trafficwatch.backend.model.TrafficCameraRecord;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +27,14 @@ public class WebSocketService {
         messagingTemplate.convertAndSend("/topic/trafficcamerarecords", kafkaRecord);
     }
 
-    public void sendToCamera(String label, TrafficCameraRecord record) {
+    public void sendToCamera(String id, String label, TrafficCameraRecord record) {
         if (record == null) {
             log.warn("Attempted to send a null TrafficCameraRecord for label: {}", label);
             return;
         }
 
         TrafficCameraKafkaRecord kafkaRecord = new TrafficCameraKafkaRecord(label, record.getTimestamp(), record.getCategories());
-        messagingTemplate.convertAndSend("/topic/trafficcamerarecords/" + label, kafkaRecord);
+        messagingTemplate.convertAndSend("/topic/trafficcamerarecords/" + id, kafkaRecord);
     }
 }
 

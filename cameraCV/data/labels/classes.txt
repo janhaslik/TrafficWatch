@@ -1,0 +1,8 @@
+auto
+bus
+car
+lcv
+motorcycle
+multiaxle
+tractor
+truck

@@ -49,13 +49,6 @@ const IconLabel = styled('div')(() => ({
 }));
 
 export default function CameraList(props: CameraListProps) {
-    /*const cameras = [
-        { id: "asdas", label: "Camera-XZLKA1", location: "Malaga", status: "Active", resolution: "560 x 560" },
-        { id: "12321", label: "Camera-BZNKA1", status: "Inactive", location: "Zurich", resolution: "560 x 560" },
-        { id: "asda13123dss", label: "Camera-XZLKA1", location: "Malaga", status: "Active", resolution: "560 x 560" },
-        { id: "a123123sdas", label: "Camera-XZLKA1", location: "Malaga", status: "Active", resolution: "560 x 560" },
-        { id: "1232adadasdasdadas1", label: "Camera-BZNKA1", status: "Inactive", location: "Zurich", resolution: "560 x 560" },
-    ];*/
 
     return (
         <TableContainer component={Paper}>

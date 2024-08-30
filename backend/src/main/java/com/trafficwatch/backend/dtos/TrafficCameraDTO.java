@@ -1,6 +1,6 @@
 package com.trafficwatch.backend.dtos;
 
-import com.trafficwatch.backend.persistence.TrafficCameraRecord;
+import com.trafficwatch.backend.model.TrafficCameraRecord;
 import lombok.Data;
 
 import java.util.List;

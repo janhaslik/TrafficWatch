@@ -4,9 +4,9 @@ import com.mongodb.client.result.UpdateResult;
 import com.trafficwatch.backend.dtos.NewTrafficCameraDTO;
 import com.trafficwatch.backend.dtos.TrafficCameraDTO;
 import com.trafficwatch.backend.dtos.TrafficCameraDetailsDTO;
-import com.trafficwatch.backend.persistence.TrafficCamera;
+import com.trafficwatch.backend.model.TrafficCamera;
 import com.trafficwatch.backend.persistence.TrafficCameraRepository;
-import com.trafficwatch.backend.persistence.TrafficCameraRecord;
+import com.trafficwatch.backend.model.TrafficCameraRecord;
 import com.trafficwatch.backend.websocket.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,10 +62,15 @@ public class TrafficService {
                 .collect(Collectors.toList());
     }
 
-    public TrafficCameraDTO getCurrentDataForTrafficCamera(String label){
+    public TrafficCameraDTO getCurrentDataForTrafficCamera(String id) throws Exception{
         LocalDate localDate = LocalDate.now();
-        TrafficCamera camera = trafficCameraRepository.findByLabel(label);
-        return convertToDTO(camera);
+        Optional<TrafficCamera> camera = trafficCameraRepository.findById(id);
+
+        if(camera.isEmpty()) {
+            throw new Exception("No camera found with id: "+id);
+        }
+
+        return convertToDTO(camera.get());
     }
 
     public TrafficCamera insertNewTrafficCamera(NewTrafficCameraDTO trafficCamera){
@@ -83,10 +89,11 @@ public class TrafficService {
 
         try {
             UpdateResult result = mongoTemplate.updateFirst(query, update, TrafficCamera.class);
+            String id = "getidpls";
             if (result.getModifiedCount() > 0) {
                 log.info("Traffic Camera record inserted for Camera: {}, Objects detected: {}", label, record.getCategories());
                 webSocketService.broadcast(label, record);
-                webSocketService.sendToCamera(label, record);
+                webSocketService.sendToCamera(id, label, record);
             }
         } catch (Exception e) {
             log.error("Error inserting Traffic Camera record for Camera: {}", label, e);

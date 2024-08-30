@@ -4,6 +4,7 @@ import CamerasPage from './pages/cameras/cameras';
 import Dashboard from './pages/dashboard/Dasboard'; 
 import Sidebar from './components/Sidebar'; 
 import { Box } from '@mui/material';
+import CameraDashboard from './pages/dashboard/CameraDashboard';
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
                         <Routes>
                             <Route path="/cameras" element={<CamerasPage />} />
                             <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path='/cameras/:id' element={<CameraDashboard/>} />
                         </Routes>
                     </Box>
                 </Box>

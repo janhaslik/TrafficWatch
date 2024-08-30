@@ -1,10 +1,23 @@
 // src/pages/CamerasPage.tsx
 import React, { useState, useEffect } from 'react';
 import { addCamera, fetchCameraDetails } from '../../services/camerasService';
-import { TextField, Button, Typography } from '@mui/material';
-import "../../styles/cameraspage.css";
+import { TextField, Button, Typography, Modal, Box, Grid } from '@mui/material';
 import { TrafficCameraDetails, TrafficCameraDetailsId } from '../../interfaces/camera';
 import CameraList from '../../components/dashboard/CameraList';
+import "../../styles/cameraspage.css";
+
+// Style for the modal
+const modalStyle = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  borderRadius: 1,
+  boxShadow: 24,
+  p: 4,
+};
 
 export default function CamerasPage() {
     const [cameras, setCameras] = useState<TrafficCameraDetailsId[]>([]);
@@ -12,7 +25,8 @@ export default function CamerasPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [newCamera, setNewCamera] = useState<TrafficCameraDetails>({label: '', location: '', status: '', resolution: '' });
+    const [newCamera, setNewCamera] = useState<TrafficCameraDetails>({ label: '', location: '', status: '', resolution: '' });
+    const [openModal, setOpenModal] = useState(false);
 
     useEffect(() => {
         const fetchCamerasData = async () => {
@@ -56,6 +70,7 @@ export default function CamerasPage() {
             setNewCamera({ label: '', location: '', status: '', resolution: '' });
             setCameras(prevCameras => [...prevCameras, addedCamera]);
             setSearchQuery('');
+            setOpenModal(false);
         } catch (e) {
             setError('Error adding camera.');
         }
@@ -76,63 +91,95 @@ export default function CamerasPage() {
     return (
         <div className="cameras-page">
             <Typography variant="h4" gutterBottom>Camera List</Typography>
-            <TextField
-                label="Search cameras..."
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={searchQuery}
-                onChange={handleSearchChange}
-            />
-            <CameraList cameras={filteredCameras}/>
-            <div className="add-camera-form">
-                <Typography variant="h6" mt={2} gutterBottom>Add New Camera</Typography>
-                <form onSubmit={handleAddCamera}>
-                    <TextField
-                        label="Camera Label"
-                        name="label"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={newCamera.label}
-                        onChange={handleInputChange}
-                        required
-                    />
-                    <TextField
-                        label="Camera Location"
-                        name="location"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={newCamera.location}
-                        onChange={handleInputChange}
-                        required
-                    />
-                    <TextField
-                        label="Camera Status"
-                        name="status"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={newCamera.status}
-                        onChange={handleInputChange}
-                        required
-                    />
-                    <TextField
-                        label="Camera Resolution"
-                        name="resolution"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={newCamera.resolution}
-                        onChange={handleInputChange}
-                        required
-                    />
-                    <Button type="submit" variant="contained" color="primary" fullWidth>
-                        Add Camera
-                    </Button>
-                </form>
-            </div>
+            <Box display={'flex'} flexDirection={"row"} gap={2}>
+                <TextField
+                    label="Search cameras..."
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setOpenModal(true)}
+                    sx={{ mt: 2, minWidth: "fit-content", height: 55 }}
+                >
+                    Add Camera
+                </Button>
+            </Box>
+            <CameraList cameras={filteredCameras} />
+
+            <Modal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
+                aria-labelledby="add-camera-modal"
+                aria-describedby="modal-for-adding-new-camera"
+            >
+                <Box sx={modalStyle}>
+                    <Typography variant="h6" gutterBottom>
+                        Add New Camera
+                    </Typography>
+                    <form onSubmit={handleAddCamera}>
+                        <Grid container spacing={1}>
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Camera Label"
+                                    name="label"
+                                    variant="outlined"
+                                    fullWidth
+                                    margin="normal"
+                                    value={newCamera.label}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Camera Location"
+                                    name="location"
+                                    variant="outlined"
+                                    fullWidth
+                                    margin="normal"
+                                    value={newCamera.location}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Camera Status"
+                                    name="status"
+                                    variant="outlined"
+                                    fullWidth
+                                    margin="normal"
+                                    value={newCamera.status}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Camera Resolution"
+                                    name="resolution"
+                                    variant="outlined"
+                                    fullWidth
+                                    margin="normal"
+                                    value={newCamera.resolution}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Button type="submit" variant="contained" color="primary">
+                                    Add Camera
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </form>
+                </Box>
+            </Modal>
         </div>
     );
 }

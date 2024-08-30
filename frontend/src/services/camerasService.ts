@@ -16,6 +16,19 @@ export const fetchCameras = async (): Promise<TrafficCamera[]> => {
     }
 };
 
+export const fetchCamera = async (id: string): Promise<TrafficCamera> => {
+    try {
+        const response = await fetch(`http://localhost:8080/api/v1/cameras/${id}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching cameras:', error);
+        throw error;
+    }
+};
+
 export const fetchCameraDetails = async (): Promise<TrafficCameraDetailsId[]> => {
     try {
         const response = await fetch('http://localhost:8080/api/v1/cameras/details');
