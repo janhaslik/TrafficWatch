@@ -4,7 +4,7 @@
 
 TrafficWatch is a traffic monitoring application that utilizes real-time object detection to count vehicles, such as cars and trucks, across multiple cameras to deliver real-time traffic analytics. This system integrates Kafka for streaming data, Java Spring for backend services, React with WebSocket for real-time display, MongoDB for data storage, and OpenCV with pretrained models for computer vision tasks.
 
-Kaggle Dataset for the Object Detection Model: (Click Link)[https://www.kaggle.com/datasets/sakshamjn/vehicle-detection-8-classes-object-detection/data]
+Kaggle Dataset for the Object Detection Model: [Click Link](https://www.kaggle.com/datasets/sakshamjn/vehicle-detection-8-classes-object-detection/data)
 
 🚀 Features
 
