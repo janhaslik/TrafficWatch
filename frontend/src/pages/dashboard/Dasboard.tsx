@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Client, Message } from '@stomp/stompjs';
-import { Container, Typography, Paper, CircularProgress, Button, ButtonGroup, Grid } from '@mui/material';
+import { Container, Typography, Paper, CircularProgress, Grid } from '@mui/material';
 import { TrafficCameraRecord, TrafficCameraRecordWebSocket } from '../../interfaces/cameraRecord';
 import { fetchCameras } from '../../services/camerasService';
 import SingleLineChart from '../../components/dashboard/SingleLineChart';
@@ -8,6 +8,7 @@ import DistributionPieChart from '../../components/dashboard/PieChart';
 import MultiLineChart from '../../components/dashboard/MultiLineChart';
 import { TrafficCamera, TrafficCameraDetailsId } from '../../interfaces/camera';
 import CameraList from '../../components/dashboard/CameraList';
+import FilterButtons from '../../components/dashboard/FilterButtons';
 
 const SOCKET_URL = 'ws://localhost:8080/ws';
 const TOPIC = '/topic/trafficcamerarecords';
@@ -198,12 +199,8 @@ export default function Dashboard() {
                 <Typography variant="h4" gutterBottom textAlign={'center'}>
                     Aggregated Traffic Camera Records
                 </Typography>
-                <ButtonGroup variant="contained" aria-label="filter buttons" sx={{ marginBottom: 2 }}>
-                    <Button onClick={() => setFilter('day')}>By Day</Button>
-                    <Button onClick={() => setFilter('hour')}>By Hour</Button>
-                    <Button onClick={() => setFilter('minute')}>By Minute</Button>
-                    <Button onClick={() => setFilter('second')}>By Second</Button>
-                </ButtonGroup>
+                <FilterButtons filter={filter} setFilter={setFilter}/>
+
 
                 <Grid container spacing={4}>
                     <Grid item xs={12} sm={6}>

@@ -1,11 +1,18 @@
-from python:3.12-slim
+FROM python:3.12-slim
 
-workdir /usr/src/app
+# Set the working directory
+WORKDIR /usr/src/app
 
-copy . .
+# Copy the application code
+COPY . .
 
+# Copy the requirements file and install dependencies
 COPY requirements.txt /tmp/
 
-RUN pip install --no-cache -r requirements.txt
+# Install system dependencies for OpenCV (including libGL for OpenCV)
+RUN apt-get update && \
+    apt-get install -y libgl1 libglib2.0-0 libsm6 libxrender1 libxext6 && \
+    pip install --no-cache-dir -r /tmp/requirements.txt
 
-cmd ["python3", "./main.py"]
+# Run the application
+CMD ["python3", "./main.py"]

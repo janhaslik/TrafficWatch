@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
-import CamerasPage from './pages/cameras/cameras';
+
 import Dashboard from './pages/dashboard/Dasboard'; 
 import Sidebar from './components/Sidebar'; 
 import { Box } from '@mui/material';
 import CameraDashboard from './pages/dashboard/CameraDashboard';
+import CamerasPage from './pages/cameras/Cameras';
 
 
 function App() {

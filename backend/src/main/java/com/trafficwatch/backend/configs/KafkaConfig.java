@@ -34,4 +34,21 @@ public class KafkaConfig {
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TrafficCameraKafkaRecord.class.getName());
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(TrafficCameraKafkaRecord.class));
     }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, byte[]> frameListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(frameConsumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, byte[]> frameConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.ByteArrayDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new org.apache.kafka.common.serialization.ByteArrayDeserializer());
+    }
 }

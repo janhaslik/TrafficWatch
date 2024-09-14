@@ -1,10 +1,11 @@
 // src/pages/CamerasPage.tsx
 import React, { useState, useEffect } from 'react';
 import { addCamera, fetchCameraDetails } from '../../services/camerasService';
-import { TextField, Button, Typography, Modal, Box, Grid } from '@mui/material';
+import { TextField, Typography, Modal, Box, Grid } from '@mui/material';
 import { TrafficCameraDetails, TrafficCameraDetailsId } from '../../interfaces/camera';
 import CameraList from '../../components/dashboard/CameraList';
 import "../../styles/cameraspage.css";
+import DefaultButton from '../../components/buttons/DefaultButton';
 
 // Style for the modal
 const modalStyle = {
@@ -62,9 +63,7 @@ export default function CamerasPage() {
         }));
     };
 
-    const handleAddCamera = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
+    const handleAddCamera = async () => {
         try {
             const addedCamera = await addCamera(newCamera);
             setNewCamera({ label: '', location: '', status: '', resolution: '' });
@@ -91,24 +90,21 @@ export default function CamerasPage() {
     return (
         <div className="cameras-page">
             <Typography variant="h4" gutterBottom>Camera List</Typography>
-            <Box display={'flex'} flexDirection={"row"} gap={2}>
-                <TextField
-                    label="Search cameras..."
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setOpenModal(true)}
-                    sx={{ mt: 2, minWidth: "fit-content", height: 55 }}
-                >
-                    Add Camera
-                </Button>
-            </Box>
+            <Grid container spacing={2} alignItems="center">
+                <Grid item xs>
+                    <TextField
+                        label="Search cameras..."
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                    />
+                </Grid>
+                <Grid item>
+                    <DefaultButton onClick={() => setOpenModal(true)} label='Add Camera'/>
+                </Grid>
+            </Grid>
             <CameraList cameras={filteredCameras} />
 
             <Modal
@@ -121,63 +117,59 @@ export default function CamerasPage() {
                     <Typography variant="h6" gutterBottom>
                         Add New Camera
                     </Typography>
-                    <form onSubmit={handleAddCamera}>
-                        <Grid container spacing={1}>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Camera Label"
-                                    name="label"
-                                    variant="outlined"
-                                    fullWidth
-                                    margin="normal"
-                                    value={newCamera.label}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Camera Location"
-                                    name="location"
-                                    variant="outlined"
-                                    fullWidth
-                                    margin="normal"
-                                    value={newCamera.location}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Camera Status"
-                                    name="status"
-                                    variant="outlined"
-                                    fullWidth
-                                    margin="normal"
-                                    value={newCamera.status}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Camera Resolution"
-                                    name="resolution"
-                                    variant="outlined"
-                                    fullWidth
-                                    margin="normal"
-                                    value={newCamera.resolution}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Button type="submit" variant="contained" color="primary">
-                                    Add Camera
-                                </Button>
-                            </Grid>
+                    <Grid container spacing={1}>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Camera Label"
+                                name="label"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={newCamera.label}
+                                onChange={handleInputChange}
+                                required
+                            />
                         </Grid>
-                    </form>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Camera Location"
+                                name="location"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={newCamera.location}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Camera Status"
+                                name="status"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={newCamera.status}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Camera Resolution"
+                                name="resolution"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={newCamera.resolution}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <DefaultButton onClick={handleAddCamera} label='Add Camera'/>
+                        </Grid>
+                    </Grid> 
                 </Box>
             </Modal>
         </div>

@@ -21,8 +21,7 @@ public interface TrafficCameraRepository extends MongoRepository<TrafficCamera, 
     @Query(value = "{}", fields = "{ 'label': 1, '_id': 0 }")
     List<String> findAllLabels();
 
-    @Query(fields = "{'label' : 1}")
-    String findByLabel(String label);
+    TrafficCamera findByLabel(String label);
 
     @Query(value = "{}", fields = "{ 'id': '$_id', 'label': 1, 'location': 1, 'status': 1, 'resolution': 1}")
     List<TrafficCameraDetailsDTO> findCameraDetails();

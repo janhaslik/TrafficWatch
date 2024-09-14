@@ -36,5 +36,16 @@ public class WebSocketService {
         TrafficCameraKafkaRecord kafkaRecord = new TrafficCameraKafkaRecord(label, record.getTimestamp(), record.getCategories());
         messagingTemplate.convertAndSend("/topic/trafficcamerarecords/" + id, kafkaRecord);
     }
+
+    // Method to broadcast video frames to the frontend via WebSocket
+    public void broadcastFrame(String cameraId, byte[] frame) {
+        if (frame == null || frame.length == 0) {
+            log.warn("Attempted to broadcast an empty frame for camera: {}", cameraId);
+            return;
+        }
+
+        messagingTemplate.convertAndSend("/topic/camera/frames/" + cameraId, frame);
+        log.info("Broadcasted frame for camera: {}", cameraId);
+    }
 }
 

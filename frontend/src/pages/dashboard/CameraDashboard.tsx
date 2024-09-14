@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Client, Message } from '@stomp/stompjs';
-import { Container, Typography, Paper, CircularProgress, Button, ButtonGroup, Grid } from '@mui/material';
+import { Container, Typography, Paper, CircularProgress, Grid } from '@mui/material';
 import { TrafficCameraRecord, TrafficCameraRecordWebSocket } from '../../interfaces/cameraRecord';
 import { fetchCamera } from '../../services/camerasService';
 import SingleLineChart from '../../components/dashboard/SingleLineChart';
@@ -9,6 +9,7 @@ import MultiLineChart from '../../components/dashboard/MultiLineChart';
 import { TrafficCamera } from '../../interfaces/camera';
 import { useParams } from 'react-router-dom';
 import LiveCamera from '../../components/dashboard/LiveCamera';
+import FilterButtons from '../../components/dashboard/FilterButtons';
 
 const SOCKET_URL: string = 'ws://localhost:8080/ws';
 
@@ -17,11 +18,12 @@ export default function CameraDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'day' | 'hour' | 'minute' | 'second'>('minute');
-    const params = useParams()
-    const id: string | undefined = params["id"]
+    const [frameUrl, setFrameUrl] = useState<string | null>(null); // State for storing the video frame
+    const params = useParams();
+    const id: string | undefined = params["id"];
 
-    const TOPIC: string = `/topic/trafficcamerarecords/${id}`;
-
+    const RECORDS_TOPIC: string = `/topic/trafficcamerarecords/${id}`;
+    const FRAMES_TOPIC: string = `/topic/camera/frames/${id}`; // New topic for video frames
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -31,8 +33,8 @@ export default function CameraDashboard() {
                     const allRecords: TrafficCameraRecordWebSocket[] = [];
 
                     camera.records.forEach((record: TrafficCameraRecord) => {
-                        allRecords.push({label: camera.label, timestamp: record.timestamp, categories: record.categories})
-                    })
+                        allRecords.push({label: camera.label, timestamp: record.timestamp, categories: record.categories});
+                    });
                     setRecords(allRecords);
                 }
             } catch (e) {
@@ -54,7 +56,8 @@ export default function CameraDashboard() {
                 console.log('STOMP: ' + str);
             },
             onConnect: () => {
-                client.subscribe(TOPIC, (message: Message) => {
+                // Subscribe to camera records
+                client.subscribe(RECORDS_TOPIC, (message: Message) => {
                     try {
                         const updatedRecord: TrafficCameraRecordWebSocket = JSON.parse(message.body);
                         setRecords(prevRecords => {
@@ -73,6 +76,14 @@ export default function CameraDashboard() {
                     } catch (e) {
                         console.error('Error parsing WebSocket message:', e);
                     }
+                });
+
+                // Subscribe to video frames
+                client.subscribe(FRAMES_TOPIC, (message: Message) => {
+                    // Create a blob URL from binary frame data and update the frameUrl state
+                    const binaryData = new Blob([message.binaryBody], { type: 'image/jpeg' });
+                    const url = URL.createObjectURL(binaryData);
+                    setFrameUrl(url);
                 });
             },
             onStompError: (frame) => {
@@ -198,12 +209,7 @@ export default function CameraDashboard() {
                 <Typography variant="h4" gutterBottom textAlign={'center'}>
                     Traffic Camera
                 </Typography>
-                <ButtonGroup variant="contained" aria-label="filter buttons" sx={{ marginBottom: 2 }}>
-                    <Button onClick={() => setFilter('day')}>By Day</Button>
-                    <Button onClick={() => setFilter('hour')}>By Hour</Button>
-                    <Button onClick={() => setFilter('minute')}>By Minute</Button>
-                    <Button onClick={() => setFilter('second')}>By Second</Button>
-                </ButtonGroup>
+                <FilterButtons filter={filter} setFilter={setFilter}/>
 
                 <Grid container spacing={4}>
                     <Grid item xs={12} sm={6}>
@@ -213,7 +219,7 @@ export default function CameraDashboard() {
                         <MultiLineChart records={aggregatedByCategory}/>
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                        <LiveCamera/>
+                        <LiveCamera frameUrl={frameUrl}/>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <DistributionPieChart records={categoryDistribution}/>

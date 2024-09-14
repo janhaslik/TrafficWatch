@@ -89,7 +89,13 @@ public class TrafficService {
 
         try {
             UpdateResult result = mongoTemplate.updateFirst(query, update, TrafficCamera.class);
-            String id = "getidpls";
+            TrafficCamera trafficCamera = trafficCameraRepository.findByLabel(label);
+
+            if (trafficCamera == null) {
+                return;
+            }
+            String id = trafficCamera.getId();
+            log.info("Camera Id: {}", id);
             if (result.getModifiedCount() > 0) {
                 log.info("Traffic Camera record inserted for Camera: {}, Objects detected: {}", label, record.getCategories());
                 webSocketService.broadcast(label, record);
@@ -98,6 +104,17 @@ public class TrafficService {
         } catch (Exception e) {
             log.error("Error inserting Traffic Camera record for Camera: {}", label, e);
         }
+    }
+
+    public void broadcastFrame(String cameraLabel, byte[] frame){
+        TrafficCamera trafficCamera = trafficCameraRepository.findByLabel(cameraLabel);
+
+        if (trafficCamera == null) {
+            return;
+        }
+        String cameraId = trafficCamera.getId();
+        log.info("Camera Id: {}", cameraId);
+        webSocketService.broadcastFrame(cameraId, frame);
     }
 
     private TrafficCameraDTO convertToDTO(TrafficCamera camera) {
