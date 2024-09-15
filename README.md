@@ -9,8 +9,8 @@ Kaggle Dataset for the Object Detection Model: [Click Link](https://www.kaggle.c
 🚀 **Features**
 
 - **Object Detection (Coming Soon)**: Utilizes OpenCV, Keras, and Tensorflow to detect and count vehicles in camera feeds.
-- **Kafka Streaming**: Streams real-time traffic data for efficient and scalable data processing.
-- **Dynamic Web Interface**: Built with React and WebSocket to display real-time traffic statistics and camera feeds.
+- **Kafka Streaming**: Streams real-time live camera feed & traffic data for efficient and scalable data processing.
+- **Dynamic Web Interface**: Built with React and WebSocket to display real-time traffic analytics and camera feeds.
 - **Data Storage**: Stores traffic data in MongoDB for historical analysis and reporting.
 
 ### UI

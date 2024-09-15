@@ -13,8 +13,14 @@ FRAME_TOPIC = "camera_frame_topic"
 
 
 def send_data(key, categories):
+    """
+    Sends metadata (object categories) to Kafka topic.
+
+    :param key: Camera name or ID
+    :param categories: List of detected objects and their counts
+    """
     data = {
-        "label": "Camera 1",
+        "label": key,
         "timestamp": str(datetime.now().isoformat()),
         "categories": categories
     }
@@ -32,10 +38,10 @@ def send_data(key, categories):
 
 def send_frame(key, frame):
     """
-    Sends a binary frame to Kafka.
+    Sends a binary frame (image) to Kafka.
 
-    :param key: Key for the Kafka message (e.g., camera ID or name)
-    :param frame: Binary frame data to be sent (e.g., JPEG bytes of an image)
+    :param key: Camera name or ID
+    :param frame: Binary frame data to be sent (JPEG encoded image)
     """
     try:
         # Sending the frame data to the FRAME_TOPIC
